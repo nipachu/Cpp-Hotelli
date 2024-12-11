@@ -8,14 +8,12 @@
 #include <fstream>
 using namespace std;
 
-
 // Setting up random number generators
 random_device seed;
 mt19937 gen(seed());
 uniform_int_distribution<>dist_discount(1, 3); // For discount
 uniform_int_distribution<>dist_number(10000, 99999); // For reservation number
 uniform_int_distribution<>dist_rooms(40, 300); // For number of rooms
-
 
 // Creating a struct for booker information
 struct Hotel
@@ -35,6 +33,8 @@ void mainMenu(int rooms);
 bool newBooking(int rooms);
 void infoCheck(int rooms);
 void searchBooking();
+bool yesOrNo(string prompt);
+
 
 // Contains first steps of setups for hotel
 int main()
@@ -106,6 +106,7 @@ int main()
 		cout << "\nNew hotel has been set up with " << rooms << " rooms total, with half (" << rooms / 2 << ") of them being 1 person rooms and the other half 2 person rooms.\n\n";
 		mainMenu(rooms);
 	}
+
 	// Read an old file
 	else if (oldOrNew == 1) {
 		fstream HotelInfo;
@@ -131,6 +132,28 @@ int main()
 		mainMenu(rooms);
 	}
 	return 0;
+}
+
+
+// Function to check if answer is yes or no
+bool yesOrNo(string prompt) {
+	char response;
+	while (true) {
+		cout << prompt;
+		cin >> response;
+		if (response == 'y' || response == 'Y') {
+			return true;
+		}
+		else if (response == 'n' || response == 'N') {
+			cout << "You answered no. Try again.\n";
+			return false;
+		}
+		else {
+			cout << "Invalid input. Try again.\n";
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		}
+	}
 }
 
 
@@ -187,42 +210,29 @@ void mainMenu(int rooms)
 	}
 }
 
+
 // Program for a new booking
 bool newBooking(int rooms)
 {
 	// Ask booker name
 	Hotel booker;
 	char isNameCorrect;
-
 	do {
-		cout << "\nName of booker: ";
+		cout << "Name of booker: ";
 		cin.ignore(numeric_limits<streamsize>::max(), '\n');
 		getline(cin, booker.name);
 
 		// Confirm input
-		cout << "Is this correct (y/n)? ";
-		cin >> isNameCorrect;
-		if (isNameCorrect == 'y' || isNameCorrect == 'Y') {
-			break;
-		}
-		else if (isNameCorrect == 'n' || isNameCorrect == 'N') {
-			cout << "You entered no. Try again.\n";
-		}
-		else {
-			cout << "Invalid input. Try again.\n";
-		}
-	} while (isNameCorrect != 'y' && isNameCorrect != 'Y');
+	} while (!yesOrNo("Confirm name (y/n)? "));
 
 	// 1 or 2 person room
 	bool valid;
-	char isRoomCorrect;
 	do {
 		cout << "1 or 2 person room? ";
 		cin >> booker.roomSize;
 
 		// Checking for invalid inputs
-		if (cin.fail() || booker.roomSize < 1 || booker.roomSize > 2)
-		{
+		if (cin.fail() || booker.roomSize < 1 || booker.roomSize > 2) {
 			cout << "Invalid input. Try again.\n";
 			valid = false;
 			cin.clear();
@@ -231,22 +241,7 @@ bool newBooking(int rooms)
 		}
 
 		// Confirm input
-		cout << "Is this correct (y/n)? ";
-		cin >> isRoomCorrect;
-
-		if (isRoomCorrect == 'y' || isRoomCorrect == 'Y') {
-			valid = true;
-		}
-		else if (isRoomCorrect == 'n' || isRoomCorrect == 'N') {
-			cout << "You entered no. Try again.\n";
-			valid = false;
-		}
-		else {
-			cout << "Invalid input. Try again.\n";
-			valid = false;
-			cin.clear();
-			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-		}
+		valid = yesOrNo("Confirm room type (y/n)? ");
 	} while (!valid);
 
 	// Check if room type is available
@@ -269,25 +264,14 @@ bool newBooking(int rooms)
 		mainMenu;
 	}
 
-	// Sets room price based on room size
-	int price;
-	if (booker.roomSize == 1) {
-		price = 100;
-	}
-	else {
-		price = 150;
-	}
-
 	// How many nights
 	int nights;
-	char isNightsCorrect;
 	do {
 		cout << "How many nights (max. 14)? ";
 		cin >> nights;
 
 		// Checking for invalid inputs
-		if (cin.fail() || nights < 1 || nights > 14)
-		{
+		if (cin.fail() || nights < 1 || nights > 14) {
 			cout << "Invalid input. Try again.\n";
 			valid = false;
 			cin.clear();
@@ -296,23 +280,17 @@ bool newBooking(int rooms)
 		}
 
 		// Confirm input
-		cout << "Is this correct (y/n)? ";
-		cin >> isNightsCorrect;
-
-		if (isNightsCorrect == 'y' || isNightsCorrect == 'Y') {
-			valid = true;
-		}
-		else if (isNightsCorrect == 'n' || isNightsCorrect == 'N') {
-			cout << "You entered no. Try again.\n";
-			valid = false;
-		}
-		else {
-			cout << "Invalid input. Try again.\n";
-			valid = false;
-			cin.clear();
-			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-		}
+		valid = yesOrNo("Confirm how many nights (y/n)? ");
 	} while (!valid);
+
+	// Sets room price based on room size
+	int price;
+	if (booker.roomSize == 1) {
+		price = 100;
+	}
+	else {
+		price = 150;
+	}
 
 	// Randomizing discount
 	int discount = 0;
@@ -330,76 +308,50 @@ bool newBooking(int rooms)
 	booker.price = (nights * price) * ((100 - discount) / 100.0);
 
 	// Print out booking information
-	cout << "\nName of booker: " << booker.name << endl
-		<< "1 or 2 person room: " << booker.roomSize << endl
-		<< "How many nights stay: " << nights << endl
+	cout << "\nName of booker: " << booker.name << "\n"
+		<< "1 or 2 person room: " << booker.roomSize << "\n"
+		<< "How many nights stay: " << nights << "\n"
 		<< "Discount: " << discount << " %\n"
 		<< "Total price of stay: " << booker.price << " euros.\n\n";
 
 	// Ask for confirmation
-	char isBookingCorrect;
-	do {
-		cout << "Confirm booking (y/n)? ";
-		cin >> isBookingCorrect;
+	if (yesOrNo("Confirm booking (y/n)? ")) {
+		// Randomize booking number
+		booker.reservation = dist_number(gen);
+		cout << "\nBooking has been saved.\nBooking number: " << booker.reservation << "\nRoom number: " << booker.roomNumber << "\n\n";
 
-		if (isBookingCorrect == 'y' || isBookingCorrect == 'Y') {
-			// Randomize booking number
-			bool isUnique = false;
-			while (!isUnique) {
-				booker.reservation = dist_number(gen);
-
-				// Check if the reservation number is unique
-				isUnique = true;
-				for (int i = 0; i < hotelRooms.size(); i++) {
-					if (hotelRooms[i].reservation == booker.reservation) {
-						isUnique = false;
-						break;  // If duplicates generate a new one
-					}
-				}
+		// Save booking info to file
+		for (auto& room : hotelRooms) {
+			if (room.roomNumber == booker.roomNumber) {
+				room.name = booker.name;
+				room.roomNumber = booker.roomNumber;
+				room.roomSize = booker.roomSize;
+				room.price = booker.price;
+				room.reservation = booker.reservation;
+				room.isOccupied = true;
+				break;
 			}
-			
-			// Save booking info to file
-			for (auto& room : hotelRooms) {
-				if (room.roomNumber == booker.roomNumber) {
-					room.name = booker.name;
-					room.roomNumber = booker.roomNumber;
-					room.roomSize = booker.roomSize;
-					room.price = booker.price;
-					room.reservation = booker.reservation;
-					room.isOccupied = true;
-					break;
-				}
-			}
-
-			fstream HotelInfo;
-			HotelInfo.open("HotelInfo.txt", ios::out | ios::trunc); // Clear file to overwrite old data
-			HotelInfo << rooms << endl; // First line contains total number of rooms
-			for (int i = 0; i < hotelRooms.size(); ++i) {
-				HotelInfo << hotelRooms[i].roomNumber << "\n"
-					<< hotelRooms[i].name << "\n"
-					<< hotelRooms[i].roomSize << "\n"
-					<< hotelRooms[i].price << "\n"
-					<< hotelRooms[i].reservation << "\n"
-					<< hotelRooms[i].isOccupied << "\n";
-			}
-
-			HotelInfo.close();
-			return true;  // Booking is confirmed, return true
-
-			break;
 		}
-		else if (isBookingCorrect == 'n' || isBookingCorrect == 'N') {
-			cout << "You entered no. Returning to main menu.\n\n";
-			break;
-			return false;
-		}
-		else {
-			cout << "Invalid input. Try again.\n";
-			cin.clear();
-			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-		}
-	} while (isBookingCorrect != 'Y' && isBookingCorrect != 'y');
 
+		fstream HotelInfo;
+		HotelInfo.open("HotelInfo.txt", ios::out | ios::trunc); // Clear file to overwrite old data
+		HotelInfo << rooms << endl; // First line contains total number of rooms
+		for (int i = 0; i < hotelRooms.size(); ++i) {
+			HotelInfo << hotelRooms[i].roomNumber << "\n"
+				<< hotelRooms[i].name << "\n"
+				<< hotelRooms[i].roomSize << "\n"
+				<< hotelRooms[i].price << "\n"
+				<< hotelRooms[i].reservation << "\n"
+				<< hotelRooms[i].isOccupied << "\n";
+		}
+
+		HotelInfo.close();
+		return true;  // Booking is confirmed, return true
+	}
+	else {
+		cout << "Booking not confirmed. Returning no main menu.\n";
+		return false;
+	}
 }
 
 
