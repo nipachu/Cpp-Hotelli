@@ -13,18 +13,17 @@ Basic functions:
 - New booking
   - Asks for booking details
   - Possibility to discard booking before saving it
-  - Creates random number between 10000-99999 for booking number
+  - Creates random number between 10000-99999 for booking number (checks if unique)
 
 - Search for a booking
   - By name
   - By booking number
+    - Check-out
+      - After searching for the right booking there is a possibility to check-out
+      - The room becomes available again
  
 - Show hotel info
   - Shows occupancy of all rooms and total of all available rooms by type
- 
-- Check-out
-  - After searching for the right booking there is a possibility to check-out
-  - The room becomes available again
  
 The program always checks for invalid inputs
 
