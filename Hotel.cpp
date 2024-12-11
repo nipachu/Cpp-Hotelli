@@ -344,9 +344,20 @@ bool newBooking(int rooms)
 
 		if (isBookingCorrect == 'y' || isBookingCorrect == 'Y') {
 			// Randomize booking number
-			booker.reservation = dist_number(gen);
-			cout << "Booking has been saved. Booking number: " << booker.reservation << " Room number: " << booker.roomNumber << endl << endl;
+			bool isUnique = false;
+			while (!isUnique) {
+				booker.reservation = dist_number(gen);
 
+				// Check if the reservation number is unique
+				isUnique = true;
+				for (int i = 0; i < hotelRooms.size(); i++) {
+					if (hotelRooms[i].reservation == booker.reservation) {
+						isUnique = false;
+						break;  // If duplicates generate a new one
+					}
+				}
+			}
+			
 			// Save booking info to file
 			for (auto& room : hotelRooms) {
 				if (room.roomNumber == booker.roomNumber) {
