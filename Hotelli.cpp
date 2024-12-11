@@ -30,6 +30,7 @@ struct Hotel
 
 vector <Hotel> hotelRooms; // Vector to save all hotel information
 
+
 // Program for showing all hotel info
 void infoCheck(int rooms) {
 	int counterSingle = 0; // Counters for both room types
@@ -46,17 +47,17 @@ void infoCheck(int rooms) {
 				cout << "Price per night is 150 euros.\n";
 				counterDouble += 1;
 			}
-			cout << "Room is available.\n";
+			cout << "Room available.\n";
 		}
 		else {
 			cout << "Booker name: " << hotelRooms[i].name << "\n";
 			cout << "Booking number: " << hotelRooms[i].reservation << "\n";
-			cout << "Room is not available.\n";
+			cout << "Room not available.\n";
 		}
 	}
-	cout << "\nTotal number of hotel rooms: " << rooms << "\n";
-	cout << "Number of available 1 person hotel rooms: " << counterSingle << "\n";
-	cout << "Number of available 2 person hotel rooms: " << counterDouble << "\n\n";
+	cout << "\nTotal number of rooms: " << rooms << "\n";
+	cout << "Number of available 1 person rooms: " << counterSingle << "\n";
+	cout << "Number of available 2 person rooms: " << counterDouble << "\n\n";
 }
 // Program for a new booking
 bool newBooking(int rooms)
@@ -77,10 +78,10 @@ bool newBooking(int rooms)
 			break;
 		}
 		else if (isNameCorrect == 'n' || isNameCorrect == 'N') {
-			cout << "You entered no. Please try again.\n";
+			cout << "You entered no. Try again.\n";
 		}
 		else {
-			cout << "Invalid input. Please try again.\n";
+			cout << "Invalid input. Try again.\n";
 		}
 	} while (isNameCorrect != 'y' && isNameCorrect != 'Y');
 
@@ -94,7 +95,7 @@ bool newBooking(int rooms)
 		// Checking for invalid inputs
 		if (cin.fail() || booker.roomSize < 1 || booker.roomSize > 2)
 		{
-			cout << "Invalid input. Please try again.\n";
+			cout << "Invalid input. Try again.\n";
 			valid = false;
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -109,11 +110,11 @@ bool newBooking(int rooms)
 			valid = true;
 		}
 		else if (isRoomCorrect == 'n' || isRoomCorrect == 'N') {
-			cout << "You entered no. Please try again.\n";
+			cout << "You entered no. Try again.\n";
 			valid = false;
 		}
 		else {
-			cout << "Invalid input. Please try again.\n";
+			cout << "Invalid input. Try again.\n";
 			valid = false;
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -135,7 +136,7 @@ bool newBooking(int rooms)
 	}
 
 	if (!roomAvailable) {
-		cout << "Sorry, no available rooms by that type at the moment. Going back to main menu.\n\n";
+		cout << "No available rooms by that type available. Going back to main menu.\n\n";
 		return false;
 	}
 
@@ -158,7 +159,7 @@ bool newBooking(int rooms)
 		// Checking for invalid inputs
 		if (cin.fail() || nights < 1 || nights > 14)
 		{
-			cout << "Invalid input. Please try again.\n";
+			cout << "Invalid input. Try again.\n";
 			valid = false;
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -173,11 +174,11 @@ bool newBooking(int rooms)
 			valid = true;
 		}
 		else if (isNightsCorrect == 'n' || isNightsCorrect == 'N') {
-			cout << "You entered no. Please try again.\n";
+			cout << "You entered no. Try again.\n";
 			valid = false;
 		}
 		else {
-			cout << "Invalid input. Please try again.\n";
+			cout << "Invalid input. Try again.\n";
 			valid = false;
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -253,14 +254,14 @@ bool newBooking(int rooms)
 			return false;
 		}
 		else {
-			cout << "Invalid input. Please try again.\n";
+			cout << "Invalid input. Try again.\n";
 		}
 	} while (isBookingCorrect != 'Y' && isBookingCorrect != 'y');
 
 }
 
 
-// Program for searching a booking
+// Program for searching a booking and/or checkout
 void searchBooking()
 {
 	int choice;
@@ -279,7 +280,7 @@ void searchBooking()
 
 		// Invalid input check
 		if (cin.fail() || choice < 1 || choice > 3) {
-			cout << "Invalid input. Please enter a valid choice (1, 2, or 3).\n";
+			cout << "Invalid input. Enter a valid number (1, 2, or 3).\n";
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
 			continue;
@@ -294,7 +295,7 @@ void searchBooking()
 			cout << "Enter name to search: ";
 			cin.ignore(); // Just in case again
 			getline(cin, searchName);
-
+			
 			for (int i = 0; i < hotelRooms.size(); ++i) {
 				// Name is valid
 				if (hotelRooms[i].name == searchName) {
@@ -305,6 +306,46 @@ void searchBooking()
 						<< "Room size: " << hotelRooms[i].roomSize << " person\n"
 						<< "Booking price: " << hotelRooms[i].price << " euros\n"
 						<< "Booking number: " << hotelRooms[i].reservation << "\n\n";
+
+					bool confirmvalid = false;
+					char confirm;
+					// Confirm input
+					do {
+						cout << "Do you want to checkout (y/n)? ";
+						cin >> confirm;
+
+						if (confirm == 'y' || confirm == 'Y') {
+							confirmvalid = true;
+							hotelRooms[i].name = "";
+							hotelRooms[i].price = 0;
+							hotelRooms[i].reservation = 0;
+							hotelRooms[i].isOccupied = false;
+
+							fstream HotelInfo;
+							HotelInfo.open("HotelInfo.txt", ios::out | ios::trunc);
+							HotelInfo << hotelRooms.size() << endl;
+							for (size_t i = 0; i < hotelRooms.size(); ++i) {
+								HotelInfo << hotelRooms[i].name << "\n"
+									<< hotelRooms[i].roomSize << "\n"
+									<< hotelRooms[i].price << "\n"
+									<< hotelRooms[i].reservation << "\n"
+									<< hotelRooms[i].isOccupied << "\n";
+							}
+							HotelInfo.close();
+							cout << "Checkout complete. Returning to main menu.\n\n";
+						}
+						else if (confirm == 'n' || confirm == 'N') {
+							cout << "Returning to main menu.\n\n";
+							confirmvalid = true;
+							return;
+						}
+						else {
+							cout << "Invalid input. Try again.\n";
+							confirmvalid = false;
+							cin.clear();
+							cin.ignore(numeric_limits<streamsize>::max(), '\n');
+						}
+					} while (!confirmvalid);
 				}
 			}
 			// Name not found
@@ -322,7 +363,7 @@ void searchBooking()
 				cin >> searchNumber;
 
 				if (cin.fail()) {
-					cout << "Invalid input. Please try again: ";
+					cout << "Invalid input. Try again: ";
 					cin.clear();
 					cin.ignore(numeric_limits<streamsize>::max(), '\n');
 				}
@@ -341,6 +382,46 @@ void searchBooking()
 						<< "Room size: " << hotelRooms[i].roomSize << " person\n"
 						<< "Booking price: " << hotelRooms[i].price << " euros\n"
 						<< "Booking number: " << hotelRooms[i].reservation << "\n\n";
+
+					bool confirmvalid = false;
+					char confirm;
+					// Confirm input
+					do {
+						cout << "Do you want to checkout (y/n)? ";
+						cin >> confirm;
+
+						if (confirm == 'y' || confirm == 'Y') {
+							confirmvalid = true;
+							hotelRooms[i].name = "";
+							hotelRooms[i].price = 0;
+							hotelRooms[i].reservation = 0;
+							hotelRooms[i].isOccupied = false;
+
+							fstream HotelInfo;
+							HotelInfo.open("HotelInfo.txt", ios::out | ios::trunc);
+							HotelInfo << hotelRooms.size() << endl;
+							for (size_t i = 0; i < hotelRooms.size(); ++i) {
+								HotelInfo << hotelRooms[i].name << "\n"
+									<< hotelRooms[i].roomSize << "\n"
+									<< hotelRooms[i].price << "\n"
+									<< hotelRooms[i].reservation << "\n"
+									<< hotelRooms[i].isOccupied << "\n";
+							}
+							HotelInfo.close();
+							cout << "Checkout complete. Returning to main menu.\n\n";
+						}
+						else if (confirm == 'n' || confirm == 'N') {
+							cout << "Returning to main menu.\n\n";
+							confirmvalid = true;
+							return;
+						}
+						else {
+							cout << "Invalid input. Try again.\n";
+							confirmvalid = false;
+							cin.clear();
+							cin.ignore(numeric_limits<streamsize>::max(), '\n');
+						}
+					} while (!confirmvalid);
 				}
 			}
 			// Number not found
@@ -359,59 +440,55 @@ void searchBooking()
 // Program for main menu
 void mainMenu(int rooms)
 {
-	// Main menu constants
-	const int NEW_CHOICE = 1, SEARCH_CHOICE = 2, INFO_CHOICE = 3, QUIT_CHOICE = 4;
-
-	// Main menu choice
 	int choice;
-	//// Just checking
-	//for (int i = 0; i < rooms; ++i) {
-	//	cout << hotelRooms[i].roomNumber << " "
-	//		<< hotelRooms[i].name << " "
-	//		<< hotelRooms[i].roomSize << " "
-	//		<< hotelRooms[i].price << " "
-	//		<< hotelRooms[i].reservation << " "
-	//		<< hotelRooms[i].isOccupied << endl;
-	//}
+	bool valid = false;
+	
+	// Main menu appearance
+	cout << "\nMAIN MENU\n\n"
+		<< "[ 1 ] New booking\n"
+		<< "[ 2 ] Check-out/Search booking\n"
+		<< "[ 3 ] See info on all rooms\n"
+		<< "[ 4 ] Close program\n\n";
+
 	do {
-		// Main menu appearance
-		cout << "\nMAIN MENU\n\n"
-			<< "[ 1 ] New booking\n"
-			<< "[ 2 ] Search booking\n"
-			<< "[ 3 ] See info on all rooms\n"
-			<< "[ 4 ] Close program\n\n"
-			<< "Choose an action: ";
+		cout << "Choose an action: ";
 		cin >> choice;
 
 		// Validating choice.
-		while (choice < NEW_CHOICE || choice > QUIT_CHOICE)
-		{
-			cout << "Invalid input. Try again: ";
-			cin >> choice;
+		if (cin.fail() || choice < 1 || choice>4) {
+			cout << "Invalid input. Try again.\n";
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
 		}
-
-		//Process valid choice
-		if (choice != QUIT_CHOICE)
-		{
-			switch (choice)
-			{
-			case NEW_CHOICE:
-				if (!newBooking(rooms)) {
-				continue;
-				}
-				break;
-
-			case SEARCH_CHOICE:
-				searchBooking();
-				break;
-
-			case INFO_CHOICE:
-				infoCheck(rooms);
-				break;
-			}
+		else {
+			valid = true;
 		}
-	} while (choice != QUIT_CHOICE);
+	} while (!valid);
+
+	//Process valid choice
+	switch (choice) {
+
+	case 1:
+		if (!newBooking(rooms)) {
+			break;
+		}
+		break;
+
+	case 2:
+		searchBooking();
+		break;
+
+	case 3:
+		infoCheck(rooms);
+		break;
+
+	case 4:
+		cout << "Closing program. Good bye!\n\n";
+		break;
+	}
 }
+
+
 
 
 // Contains first steps of setups for hotel
@@ -427,7 +504,7 @@ int main()
 		// Checking for invalid inputs
 		if (cin.fail() || oldOrNew < 1 || oldOrNew > 2)
 		{
-			cout << "Invalid input. Please try again.\n";
+			cout << "Invalid input. Try again.\n";
 			valid = false;
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -442,11 +519,11 @@ int main()
 			valid = true;
 		}
 		else if (really == 'n' || really == 'N') {
-			cout << "You entered no. Please try again.\n";
+			cout << "You entered no. Try again.\n";
 			valid = false;
 		}
 		else {
-			cout << "Invalid input. Please try again.\n";
+			cout << "Invalid input. Try again.\n";
 			valid = false;
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
