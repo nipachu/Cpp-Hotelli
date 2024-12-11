@@ -34,6 +34,7 @@ bool newBooking(int rooms);
 void infoCheck(int rooms);
 void searchBooking();
 bool yesOrNo(string prompt);
+int validInput(string prompt, int min, int max);
 
 
 // Contains first steps of setups for hotel
@@ -42,8 +43,9 @@ int main()
 	bool valid;
 	int oldOrNew;
 	char really;
+	cout << "Continue with previous hotel (1) or start a new one (2)? ";
 	do {
-		cout << "Continue with previous hotel (1) or start a new one (2)? ";
+		//cout << "Continue with previous hotel (1) or start a new one (2)? ";
 		cin >> oldOrNew;
 
 		// Checking for invalid inputs
@@ -135,6 +137,25 @@ int main()
 }
 
 
+// Function to validate inputs (integer only)
+int validInput(string prompt, int min, int max) {
+	int value;
+	while (true) {
+		cout << prompt;
+		cin >> value;
+
+		if (cin.fail() || value < min || value > max) {
+			cout << "Invalid input. Enter a number between " << min << " and " << max << ".\n";
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		}
+		else {
+			return value;
+		}
+	}
+}
+
+
 // Function to check if answer is yes or no
 bool yesOrNo(string prompt) {
 	char response;
@@ -160,7 +181,6 @@ bool yesOrNo(string prompt) {
 // Function for main menu
 void mainMenu(int rooms)
 {
-	int choice;
 	bool valid = false;
 
 	// Main menu appearance
@@ -171,21 +191,9 @@ void mainMenu(int rooms)
 			<< "[ 3 ] See info on all rooms\n"
 			<< "[ 4 ] Close program\n\n";
 
-		do {
-			cout << "Choose an action: ";
-			cin >> choice;
-
-			// Validating choice.
-			if (cin.fail() || choice < 1 || choice>4) {
-				cout << "Invalid input. Try again.\n";
-				cin.clear();
-				cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			}
-			else {
-				valid = true;
-			}
-		} while (!valid);
-
+		// Make sure answer is valid
+		int choice = validInput("Choose an action: ", 1, 4);
+		
 		//Process valid choice
 		switch (choice) {
 
@@ -228,17 +236,7 @@ bool newBooking(int rooms)
 	// 1 or 2 person room
 	bool valid;
 	do {
-		cout << "1 or 2 person room? ";
-		cin >> booker.roomSize;
-
-		// Checking for invalid inputs
-		if (cin.fail() || booker.roomSize < 1 || booker.roomSize > 2) {
-			cout << "Invalid input. Try again.\n";
-			valid = false;
-			cin.clear();
-			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			continue;
-		}
+		booker.roomSize = validInput("1 or 2 person room? ", 1, 2);
 
 		// Confirm input
 		valid = yesOrNo("Confirm room type (y/n)? ");
@@ -267,22 +265,11 @@ bool newBooking(int rooms)
 	// How many nights
 	int nights;
 	do {
-		cout << "How many nights (max. 14)? ";
-		cin >> nights;
+		nights = validInput("How many nights (max. 14)? ", 1, 14); // Make sure input is valid
 
-		// Checking for invalid inputs
-		if (cin.fail() || nights < 1 || nights > 14) {
-			cout << "Invalid input. Try again.\n";
-			valid = false;
-			cin.clear();
-			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			continue;
-		}
-
-		// Confirm input
-		valid = yesOrNo("Confirm how many nights (y/n)? ");
+		valid = yesOrNo("Confirm how many nights (y/n)? "); // Get confirmation
 	} while (!valid);
-
+	
 	// Sets room price based on room size
 	int price;
 	if (booker.roomSize == 1) {
@@ -397,164 +384,152 @@ void searchBooking()
 		<< "[ 2 ] Booking number\n\n"
 		<< "[ 3 ] Return to main menu\n";
 
-	while (!valid) {
-		cout << "Choose an action: ";
-		cin >> choice;
+	choice = validInput("Choose an action: ", 1, 3); // Validate menu choice
+
+	string searchName;
+	int searchNumber;
+
+	// Search by name
+	if (choice == 1) {
+		cout << "Enter name to search: ";
+		cin.ignore(); // Just in case again
+		getline(cin, searchName);
+
+		for (int i = 0; i < hotelRooms.size(); ++i) {
+			// Name is valid
+			if (hotelRooms[i].name == searchName) {
+				found = true;
+				cout << "\nBooking found. Booking information:\n"
+					<< "Room number: " << hotelRooms[i].roomNumber << "\n"
+					<< "Name: " << hotelRooms[i].name << "\n"
+					<< "Room size: " << hotelRooms[i].roomSize << " person\n"
+					<< "Booking price: " << hotelRooms[i].price << " euros\n"
+					<< "Booking number: " << hotelRooms[i].reservation << "\n\n";
+
+				bool confirmvalid = false;
+				char confirm;
+				// Confirm input
+				do {
+					cout << "Do you want to checkout (y/n)? ";
+					cin >> confirm;
+
+					if (confirm == 'y' || confirm == 'Y') {
+						confirmvalid = true;
+						hotelRooms[i].name = "";
+						hotelRooms[i].price = 0;
+						hotelRooms[i].reservation = 0;
+						hotelRooms[i].isOccupied = false;
+
+						fstream HotelInfo;
+						HotelInfo.open("HotelInfo.txt", ios::out | ios::trunc);
+						HotelInfo << hotelRooms.size() << endl;
+						for (size_t i = 0; i < hotelRooms.size(); ++i) {
+							HotelInfo << hotelRooms[i].name << "\n"
+								<< hotelRooms[i].roomSize << "\n"
+								<< hotelRooms[i].price << "\n"
+								<< hotelRooms[i].reservation << "\n"
+								<< hotelRooms[i].isOccupied << "\n";
+						}
+						HotelInfo.close();
+						cout << "Checkout complete. Returning to main menu.\n\n";
+					}
+					else if (confirm == 'n' || confirm == 'N') {
+						cout << "Returning to main menu.\n\n";
+						confirmvalid = true;
+						return;
+					}
+					else {
+						cout << "Invalid input. Try again.\n";
+						confirmvalid = false;
+						cin.clear();
+						cin.ignore(numeric_limits<streamsize>::max(), '\n');
+					}
+				} while (!confirmvalid);
+			}
+		}
+		// Name not found
+		if (!found) {
+			cout << "\nNo booking found with the name " << searchName << ". Going back to main menu.\n";
+		}
+	}
+
+	// Search with number
+	else if (choice == 2) {
+		cout << "Enter booking number to search: ";
 
 		// Invalid input check
-		if (cin.fail() || choice < 1 || choice > 3) {
-			cout << "Invalid input. Enter a valid number (1, 2, or 3).\n";
-			cin.clear();
-			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			continue;
-		}
+		while (true) {
+			cin >> searchNumber;
 
-		valid = true;
-		string searchName;
-		int searchNumber;
-
-		// Search by name
-		if (choice == 1) {
-			cout << "Enter name to search: ";
-			cin.ignore(); // Just in case again
-			getline(cin, searchName);
-
-			for (int i = 0; i < hotelRooms.size(); ++i) {
-				// Name is valid
-				if (hotelRooms[i].name == searchName) {
-					found = true;
-					cout << "\nBooking found. Booking information:\n"
-						<< "Room number: " << hotelRooms[i].roomNumber << "\n"
-						<< "Name: " << hotelRooms[i].name << "\n"
-						<< "Room size: " << hotelRooms[i].roomSize << " person\n"
-						<< "Booking price: " << hotelRooms[i].price << " euros\n"
-						<< "Booking number: " << hotelRooms[i].reservation << "\n\n";
-
-					bool confirmvalid = false;
-					char confirm;
-					// Confirm input
-					do {
-						cout << "Do you want to checkout (y/n)? ";
-						cin >> confirm;
-
-						if (confirm == 'y' || confirm == 'Y') {
-							confirmvalid = true;
-							hotelRooms[i].name = "";
-							hotelRooms[i].price = 0;
-							hotelRooms[i].reservation = 0;
-							hotelRooms[i].isOccupied = false;
-
-							fstream HotelInfo;
-							HotelInfo.open("HotelInfo.txt", ios::out | ios::trunc);
-							HotelInfo << hotelRooms.size() << endl;
-							for (size_t i = 0; i < hotelRooms.size(); ++i) {
-								HotelInfo << hotelRooms[i].name << "\n"
-									<< hotelRooms[i].roomSize << "\n"
-									<< hotelRooms[i].price << "\n"
-									<< hotelRooms[i].reservation << "\n"
-									<< hotelRooms[i].isOccupied << "\n";
-							}
-							HotelInfo.close();
-							cout << "Checkout complete. Returning to main menu.\n\n";
-						}
-						else if (confirm == 'n' || confirm == 'N') {
-							cout << "Returning to main menu.\n\n";
-							confirmvalid = true;
-							return;
-						}
-						else {
-							cout << "Invalid input. Try again.\n";
-							confirmvalid = false;
-							cin.clear();
-							cin.ignore(numeric_limits<streamsize>::max(), '\n');
-						}
-					} while (!confirmvalid);
-				}
+			if (cin.fail()) {
+				cout << "Invalid input. Try again: ";
+				cin.clear();
+				cin.ignore(numeric_limits<streamsize>::max(), '\n');
 			}
-			// Name not found
-			if (!found) {
-				cout << "\nNo booking found with the name " << searchName << ". Going back to main menu.\n";
+			else {
+				break;
 			}
 		}
 
-		// Search with number
-		else if (choice == 2) {
-			cout << "Enter booking number to search: ";
+		for (int i = 0; i < hotelRooms.size(); ++i) {
+			// Number is valid
+			if (hotelRooms[i].reservation == searchNumber) {
+				found = true;
+				cout << "\nBooking found. Booking information:\n"
+					<< "Room number: " << hotelRooms[i].roomNumber << "\n"
+					<< "Name: " << hotelRooms[i].name << "\n"
+					<< "Room size: " << hotelRooms[i].roomSize << " person\n"
+					<< "Booking price: " << hotelRooms[i].price << " euros\n"
+					<< "Booking number: " << hotelRooms[i].reservation << "\n\n";
 
-			// Invalid input check
-			while (true) {
-				cin >> searchNumber;
+				bool confirmvalid = false;
+				char confirm;
+				// Confirm input
+				do {
+					cout << "Do you want to checkout (y/n)? ";
+					cin >> confirm;
 
-				if (cin.fail()) {
-					cout << "Invalid input. Try again: ";
-					cin.clear();
-					cin.ignore(numeric_limits<streamsize>::max(), '\n');
-				}
-				else {
-					break;
-				}
-			}
+					if (confirm == 'y' || confirm == 'Y') {
+						confirmvalid = true;
+						hotelRooms[i].name = "";
+						hotelRooms[i].price = 0;
+						hotelRooms[i].reservation = 0;
+						hotelRooms[i].isOccupied = false;
 
-			for (int i = 0; i < hotelRooms.size(); ++i) {
-				// Number is valid
-				if (hotelRooms[i].reservation == searchNumber) {
-					found = true;
-					cout << "\nBooking found. Booking information:\n"
-						<< "Room number: " << hotelRooms[i].roomNumber << "\n"
-						<< "Name: " << hotelRooms[i].name << "\n"
-						<< "Room size: " << hotelRooms[i].roomSize << " person\n"
-						<< "Booking price: " << hotelRooms[i].price << " euros\n"
-						<< "Booking number: " << hotelRooms[i].reservation << "\n\n";
-
-					bool confirmvalid = false;
-					char confirm;
-					// Confirm input
-					do {
-						cout << "Do you want to checkout (y/n)? ";
-						cin >> confirm;
-
-						if (confirm == 'y' || confirm == 'Y') {
-							confirmvalid = true;
-							hotelRooms[i].name = "";
-							hotelRooms[i].price = 0;
-							hotelRooms[i].reservation = 0;
-							hotelRooms[i].isOccupied = false;
-
-							fstream HotelInfo;
-							HotelInfo.open("HotelInfo.txt", ios::out | ios::trunc);
-							HotelInfo << hotelRooms.size() << endl;
-							for (size_t i = 0; i < hotelRooms.size(); ++i) {
-								HotelInfo << hotelRooms[i].name << "\n"
-									<< hotelRooms[i].roomSize << "\n"
-									<< hotelRooms[i].price << "\n"
-									<< hotelRooms[i].reservation << "\n"
-									<< hotelRooms[i].isOccupied << "\n";
-							}
-							HotelInfo.close();
-							cout << "Checkout complete. Returning to main menu.\n\n";
+						fstream HotelInfo;
+						HotelInfo.open("HotelInfo.txt", ios::out | ios::trunc);
+						HotelInfo << hotelRooms.size() << endl;
+						for (size_t i = 0; i < hotelRooms.size(); ++i) {
+							HotelInfo << hotelRooms[i].name << "\n"
+								<< hotelRooms[i].roomSize << "\n"
+								<< hotelRooms[i].price << "\n"
+								<< hotelRooms[i].reservation << "\n"
+								<< hotelRooms[i].isOccupied << "\n";
 						}
-						else if (confirm == 'n' || confirm == 'N') {
-							cout << "Returning to main menu.\n\n";
-							confirmvalid = true;
-							return;
-						}
-						else {
-							cout << "Invalid input. Try again.\n";
-							confirmvalid = false;
-							cin.clear();
-							cin.ignore(numeric_limits<streamsize>::max(), '\n');
-						}
-					} while (!confirmvalid);
-				}
-			}
-			// Number not found
-			if (!found) {
-				cout << "\nNo booking found with the number " << searchNumber << ". Going back to main menu.\n";
+						HotelInfo.close();
+						cout << "Checkout complete. Returning to main menu.\n\n";
+					}
+					else if (confirm == 'n' || confirm == 'N') {
+						cout << "Returning to main menu.\n\n";
+						confirmvalid = true;
+						return;
+					}
+					else {
+						cout << "Invalid input. Try again.\n";
+						confirmvalid = false;
+						cin.clear();
+						cin.ignore(numeric_limits<streamsize>::max(), '\n');
+					}
+				} while (!confirmvalid);
 			}
 		}
-		else if (choice == 3) {
-			cout << "Returning to main menu...\n";
-			return;
+		// Number not found
+		if (!found) {
+			cout << "\nNo booking found with the number " << searchNumber << ". Going back to main menu.\n";
 		}
+	}
+	else if (choice == 3) {
+		cout << "Returning to main menu...\n";
+		return;
 	}
 }
